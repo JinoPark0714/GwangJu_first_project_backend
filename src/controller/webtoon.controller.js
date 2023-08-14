@@ -4,21 +4,40 @@ import WebtoonService from '../service/webtoon.service.js';
 const router = express.Router();
 const service = WebtoonService;
 
-router.get('/', async (request, response, next) => {
+router.post("/binary", async (request, response, next)=>{
   try {
-    const {title, description} = request.body;
-    const textArray = await service.getTextArrayWithSpaceDeleted(title, description);
-    const webtoonData = service.getWebtoonData(textArray);
+    const { title, description, genre, format} = request.body;
+    const filteredDescription = service.deleteEnter(description);
+    const result = await service.getIsSuccess(title, filteredDescription, genre, format);
     return response.status(200).json({
-      data: webtoonData,
-      message: "Success"
+      data : result,
+      message : "Success"
     });
   } catch (error) {
-    console.log(error);
     return response.status(500).json({
-      message: `Failure\n${error}`
+      data : error,
+      message : "failure"
     });
   }
 });
+
+router.post("/rating", async (request, response, next)=>{
+  try {
+    const { title, description, summary, genre} = request.body;
+    const filteredDescription = service.deleteEnter(description);
+    const rating = await service.getPredictionRating(filteredDescription, summary, genre);
+    return response.status(200).json({
+      data : {rating, title},
+      message : "Success"
+    });
+  } catch (error) {
+    return response.status(500).json({
+      data : error,
+      message : "failure"
+    });
+  }
+});
+
+
 
 export default router;
